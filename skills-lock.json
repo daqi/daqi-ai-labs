@@ -5,6 +5,11 @@
       "source": "199-biotechnologies/claude-deep-research-skill",
       "sourceType": "github",
       "computedHash": "612fcc6704d615d422cf3e5abc8fa2f02373b882174c83d5ca4338eae59c8720"
+    },
+    "skill-creator": {
+      "source": "vercel-labs/agent-browser",
+      "sourceType": "github",
+      "computedHash": "0e1196449595117435416d50c130e706cd86010fed959eb3a6d41cf989328506"
     }
   }
 }
