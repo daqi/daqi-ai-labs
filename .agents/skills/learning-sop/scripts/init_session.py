@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
-init_session.py — Learning SOP session manager
+init_session.py — Learning SOP session manager (adaptive cycle version)
 
 Usage:
-    python3 init_session.py <slug> [--sessions-dir <path>] [--action <init|status>]
-
-Actions:
-    init    Create session folder if not exists; print status JSON
-    status  Read and print session status JSON (error if not exists)
+    python3 init_session.py --topic "主题名" [--slug "slug"] \
+        --sessions-dir learning/sessions --action init|status
 
 Output (JSON to stdout):
 {
@@ -15,11 +12,13 @@ Output (JSON to stdout):
   "slug": str,
   "topic": str,
   "session_dir": str,
-  "current_phase": int,
-  "completed_phases": [int],
+  "current_cycle": int,
   "knowledge_level": int,
+  "mode": str,
+  "efactor": float,
   "next_review": str,
-  "total_sessions": int,
+  "review_count": int,
+  "total_cycles_completed": int,
   "last_active": str
 }
 """
@@ -35,62 +34,27 @@ from pathlib import Path
 
 DEFAULT_SESSIONS_DIR = "learning/sessions"
 
-PHASE_FILES = [
-    "phase1-topology.md",
-    "phase2-feynman.md",
-    "phase3-quiz.md",
-    "phase4-transfer.md",
-    "phase5-calibration.md",
-    "journal.md",
-]
-
 META_TEMPLATE = """\
 ---
 topic: "{topic}"
 slug: "{slug}"
 started_at: "{today}"
 last_active: "{today}"
-completed_phases: []
-current_phase: 1
-total_sessions: 0
+current_cycle: 1
 knowledge_level: 0
+mode: learning
+efactor: 2.5
 next_review: ""
 review_count: 0
+total_cycles_completed: 0
 ---
 """
 
-PHASE_TEMPLATES = {
-    "phase1-topology.md": """\
-# 知识拓扑 · {topic}
-
-<!-- Phase 1 每次学习后由 AI 追加一个 Session 块 -->
-""",
-    "phase2-feynman.md": """\
-# 费曼压缩记录 · {topic}
-
-<!-- Phase 2 每次学习后由 AI 追加摘要：暴露的漏洞 + 追问路径 -->
-""",
-    "phase3-quiz.md": """\
-# 检索强化记录 · {topic}
-
-<!-- Phase 3 每次学习后由 AI 追加：题目/答案/得分/错误分析/下次复习时间 -->
-""",
-    "phase4-transfer.md": """\
-# 跨域迁移记录 · {topic}
-
-<!-- Phase 4 每次学习后由 AI 追加：映射目标领域 + 迁移案例摘要 -->
-""",
-    "phase5-calibration.md": """\
-# 元认知校准记录 · {topic}
-
-<!-- Phase 5 每次学习后由 AI 追加：自评分/能否教别人/最不确定点/认知错觉概率 -->
-""",
-    "journal.md": """\
+JOURNAL_TEMPLATE = """\
 # 学习日志 · {topic}
 
-<!-- 用户自由记录 + AI 在每次完整流程结束后追加关键节点摘要 -->
-""",
-}
+<!-- 用户自由记录区 + AI 在每轮结束后追加摘要（只追加，不覆盖） -->
+"""
 
 
 def parse_frontmatter(text: str) -> dict:
@@ -104,12 +68,11 @@ def parse_frontmatter(text: str) -> dict:
             key, _, val = line.partition(":")
             key = key.strip()
             val = val.strip()
-            # parse lists like [1, 2]
             if val.startswith("[") and val.endswith("]"):
                 inner = val[1:-1].strip()
                 fm[key] = [int(x.strip()) for x in inner.split(",") if x.strip()] if inner else []
-            elif val.isdigit():
-                fm[key] = int(val)
+            elif val.replace(".", "", 1).lstrip("-").isdigit():
+                fm[key] = float(val) if "." in val else int(val)
             else:
                 fm[key] = val.strip('"')
     return fm
@@ -122,13 +85,13 @@ def init_session(slug: str, topic: str, sessions_dir: Path) -> dict:
 
     if not exists_before:
         session_dir.mkdir(parents=True, exist_ok=True)
-        # Write meta.md
         today = date.today().isoformat()
         meta_content = META_TEMPLATE.format(topic=topic, slug=slug, today=today)
         (session_dir / "meta.md").write_text(meta_content, encoding="utf-8")
-        # Write phase files
-        for fname, template in PHASE_TEMPLATES.items():
-            (session_dir / fname).write_text(template.format(topic=topic), encoding="utf-8")
+        (session_dir / "journal.md").write_text(
+            JOURNAL_TEMPLATE.format(topic=topic), encoding="utf-8"
+        )
+        # cycles/ dir will be created on demand by the AI when writing cycle files
 
     return read_status(slug, sessions_dir)
 
@@ -149,19 +112,51 @@ def read_status(slug: str, sessions_dir: Path) -> dict:
     text = meta_path.read_text(encoding="utf-8")
     fm = parse_frontmatter(text)
 
+    # Detect how many cycles exist on disk
+    cycles_dir = session_dir / "cycles"
+    completed_cycles = 0
+    if cycles_dir.exists():
+        completed_cycles = sum(
+            1 for d in cycles_dir.iterdir()
+            if d.is_dir() and (d / "assessment.md").exists()
+        )
+
     return {
         "exists": True,
         "slug": slug,
         "topic": fm.get("topic", slug),
         "session_dir": str(session_dir),
-        "current_phase": fm.get("current_phase", 1),
-        "completed_phases": fm.get("completed_phases", []),
+        "current_cycle": fm.get("current_cycle", 1),
         "knowledge_level": fm.get("knowledge_level", 0),
+        "mode": fm.get("mode", "learning"),
+        "efactor": fm.get("efactor", 2.5),
         "next_review": fm.get("next_review", ""),
-        "total_sessions": fm.get("total_sessions", 0),
-        "last_active": fm.get("last_active", ""),
         "review_count": fm.get("review_count", 0),
+        "total_cycles_completed": fm.get("total_cycles_completed", completed_cycles),
+        "last_active": fm.get("last_active", ""),
     }
+
+
+def print_status_summary(status: dict):
+    """Print a human-readable status summary."""
+    if not status.get("exists"):
+        print(f"Session '{status['slug']}' not found.")
+        return
+
+    mode = status.get("mode", "learning")
+    print(f"\n{'='*50}")
+    print(f"  主题：{status['topic']}")
+    print(f"  Slug：{status['slug']}")
+    print(f"  知识水平：{status['knowledge_level']}/10")
+    print(f"  当前轮次：Cycle {status['current_cycle']}")
+    print(f"  已完成轮次：{status['total_cycles_completed']}")
+    print(f"  模式：{'学习中' if mode == 'learning' else '复习维护'}")
+    if mode == "review":
+        print(f"  E-Factor：{status['efactor']}")
+        print(f"  下次复习：{status['next_review'] or '未设定'}")
+        print(f"  已复习次数：{status['review_count']}")
+    print(f"  最后活跃：{status['last_active']}")
+    print(f"{'='*50}\n")
 
 
 def slugify(text: str) -> str:
@@ -175,8 +170,8 @@ def slugify(text: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Learning SOP session manager")
-    parser.add_argument("slug", nargs="?", help="Session slug (or omit and use --topic/--slug)")
-    parser.add_argument("--topic", help="Topic name (auto-generates slug if slug not given)")
+    parser.add_argument("slug", nargs="?", help="Session slug (positional, optional)")
+    parser.add_argument("--topic", help="Topic name (auto-generates slug if not given)")
     parser.add_argument("--slug", dest="slug_opt", help="Explicit slug override")
     parser.add_argument("--sessions-dir", default=DEFAULT_SESSIONS_DIR)
     parser.add_argument("--action", choices=["init", "status"], default="init")
@@ -195,7 +190,6 @@ def main():
     else:
         parser.error("Provide slug positional arg, --slug, or --topic")
 
-    # Resolve sessions directory relative to cwd or absolute
     sessions_dir = Path(args.sessions_dir)
     if not sessions_dir.is_absolute():
         sessions_dir = Path.cwd() / sessions_dir
@@ -205,7 +199,10 @@ def main():
     else:
         result = read_status(slug, sessions_dir)
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.action == "status":
+        print_status_summary(result)
+    else:
+        print(json.dumps(result, ensure_ascii=False, indent=2))
 
 
 if __name__ == "__main__":
