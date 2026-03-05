@@ -82,7 +82,7 @@ python3 .agents/skills/learning-sop/scripts/init_session.py \
 | **Step A：水平诊断** | ~5 min | `references/step-a-diagnosis.md` | 第 1 轮问卷；后续轮次读上轮结果 + 遗忘衰减计算 |
 | **Step B：按需生成课程** | ~3 min | `references/step-b-curriculum.md` | 基于诊断结果，只生成针对盲区的内容 |
 | **Step C：学习互动** | ~40 min | `references/step-c-interaction.md` | C1 费曼测试 → C2 检索练习 → C3 迁移应用 |
-| **Step D：测评 & 决策** | ~5 min | `references/step-d-assessment.md` | 综合评分、更新水平、循环决策或 SM-2 规划 |
+| **Step D：测评 & 决策** | ~7 min | `references/step-d-assessment.md` | D0 元认知校准（学习者自评 → AI 校准）→ 综合评分 → 循环决策 |
 
 ---
 
