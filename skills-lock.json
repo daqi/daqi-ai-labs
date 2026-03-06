@@ -1,6 +1,16 @@
 {
   "version": 1,
   "skills": {
+    "baoyu-image-gen": {
+      "source": "jimliu/baoyu-skills",
+      "sourceType": "github",
+      "computedHash": "88057fec6cbb080c629102200b09ea25659674f1329b7cbbc2c4c419c4c0f2e9"
+    },
+    "baoyu-infographic": {
+      "source": "jimliu/baoyu-skills",
+      "sourceType": "github",
+      "computedHash": "a12443b295ef71f03dcf78ee19011261871b7811040ed4d2fab004c026a5950f"
+    },
     "deep-research": {
       "source": "199-biotechnologies/claude-deep-research-skill",
       "sourceType": "github",
