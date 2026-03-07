@@ -9,7 +9,7 @@
     "baoyu-infographic": {
       "source": "jimliu/baoyu-skills",
       "sourceType": "github",
-      "computedHash": "a12443b295ef71f03dcf78ee19011261871b7811040ed4d2fab004c026a5950f"
+      "computedHash": "24ab30d5664e26b25c52b05a434a4a45e773f3316c5e8cff99c9e34ccbe7ae6d"
     },
     "deep-research": {
       "source": "199-biotechnologies/claude-deep-research-skill",
@@ -17,9 +17,14 @@
       "computedHash": "612fcc6704d615d422cf3e5abc8fa2f02373b882174c83d5ca4338eae59c8720"
     },
     "skill-creator": {
-      "source": "vercel-labs/agent-browser",
+      "source": "anthropics/skills",
       "sourceType": "github",
-      "computedHash": "0e1196449595117435416d50c130e706cd86010fed959eb3a6d41cf989328506"
+      "computedHash": "b122f4d1e91aa1d83027e050b5b37c3156203ee85458d7b1360bc48167c9e02a"
+    },
+    "visual-explainer": {
+      "source": "nicobailon/visual-explainer",
+      "sourceType": "github",
+      "computedHash": "103767af1631d8b7967619bd8fd7593cb6d3286b101f2065828862dbe7030404"
     }
   }
 }
