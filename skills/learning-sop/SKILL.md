@@ -15,13 +15,13 @@ description: AI 原生自适应深度学习工作流（Learning SOP），模拟 
 /learning-sop topic="主题名" [slug="custom-slug"] [cycle=N] [action=resume|status]
 ```
 
-| 参数 | 说明 | 示例 |
-|------|------|------|
-| `topic` | 学习主题（必填） | `topic="奥派经济学主观价值理论"` |
-| `slug` | 自定义目录名（可选，默认自动生成） | `slug="austrian-value"` |
-| `cycle` | 从指定循环轮次开始（默认从当前继续） | `cycle=2` |
-| `action=status` | 只查看进度，不执行学习 | `action=status` |
-| `action=resume` | 从上次中断处继续 | `action=resume` |
+| 参数            | 说明                                 | 示例                             |
+| --------------- | ------------------------------------ | -------------------------------- |
+| `topic`         | 学习主题（必填）                     | `topic="奥派经济学主观价值理论"` |
+| `slug`          | 自定义目录名（可选，默认自动生成）   | `slug="austrian-value"`          |
+| `cycle`         | 从指定循环轮次开始（默认从当前继续） | `cycle=2`                        |
+| `action=status` | 只查看进度，不执行学习               | `action=status`                  |
+| `action=resume` | 从上次中断处继续                     | `action=resume`                  |
 
 ---
 
@@ -48,7 +48,7 @@ description: AI 原生自适应深度学习工作流（Learning SOP），模拟 
 
 ## 执行流程
 
-### Step 1：初始化 Session
+### Step 1：初始化 Session + 创建 Markmap 脑图
 
 ```bash
 python3 .agents/skills/learning-sop/scripts/init_session.py \
@@ -59,6 +59,10 @@ python3 .agents/skills/learning-sop/scripts/init_session.py \
 
 - 新 session：创建目录和文件，`knowledge_level=0`，`current_cycle=1`
 - 已有 session：读取 `current_cycle`、`knowledge_level`、`last_active`、`efactor` 等状态
+- 同步确保存在一个 session 级的 Markmap 文件：`learning/sessions/{slug}/{slug}-脑图.mm.md`
+- 仅在文件不存在时创建；如果文件已存在，Step 1 不自动更新其内容
+- 优先使用 `assets/session-templates/00-脑图-template.mm.md` 生成 Markmap 模板，不要把模板正文硬编码在脚本里
+- 模板结构参考读书脑图：重要性说明、分部分结构、为什么重要、建议阅读顺序、极简理解
 
 若 `action=status`：打印进度摘要后终止，不进入学习流程。
 
@@ -67,6 +71,7 @@ python3 .agents/skills/learning-sop/scripts/init_session.py \
 ### Step 2：确定起始循环
 
 优先级：
+
 1. 用户指定 `cycle=N` → 从第 N 轮开始（读取前 N-1 轮上下文）
 2. `action=resume` 或无参数 → 从 `meta.md` 的 `current_cycle` 继续
 3. 全新 session → 从第 1 轮开始
@@ -77,12 +82,12 @@ python3 .agents/skills/learning-sop/scripts/init_session.py \
 
 详细 prompt、评分标准、追加格式见对应参考文件：
 
-| 步骤 | 时长 | 参考文件 | 说明 |
-|------|------|---------|------|
-| **Step A：水平诊断** | ~5 min | `references/step-a-diagnosis.md` | 第 1 轮问卷；后续轮次读上轮结果 + 遗忘衰减计算 |
-| **Step B：按需生成课程** | ~3 min | `references/step-b-curriculum.md` | 基于诊断结果，只生成针对盲区的内容 |
-| **Step C：学习互动** | ~40 min | `references/step-c-interaction.md` | C1 费曼测试 → C2 检索练习 → C3 迁移应用 |
-| **Step D：测评 & 决策** | ~7 min | `references/step-d-assessment.md` | D0 元认知校准（学习者自评 → AI 校准）→ 综合评分 → 循环决策 |
+| 步骤                     | 时长    | 参考文件                           | 说明                                                       |
+| ------------------------ | ------- | ---------------------------------- | ---------------------------------------------------------- |
+| **Step A：水平诊断**     | ~5 min  | `references/step-a-diagnosis.md`   | 第 1 轮问卷；后续轮次读上轮结果 + 遗忘衰减计算             |
+| **Step B：按需生成课程** | ~3 min  | `references/step-b-curriculum.md`  | 基于诊断结果，只生成针对盲区的内容                         |
+| **Step C：学习互动**     | ~40 min | `references/step-c-interaction.md` | C1 费曼测试 → C2 检索练习 → C3 迁移应用                    |
+| **Step D：测评 & 决策**  | ~7 min  | `references/step-d-assessment.md`  | D0 元认知校准（学习者自评 → AI 校准）→ 综合评分 → 循环决策 |
 
 ---
 
@@ -104,7 +109,12 @@ learning/sessions/{slug}/cycles/cycle{N}/
 learning/sessions/{slug}/
 ├── meta.md         # current_cycle、knowledge_level、efactor、next_review 等
 └── journal.md      # 每轮摘要追加（AI 只追加，不覆盖用户内容）
+└── {slug}-脑图.mm.md # Markmap 脑图，Step 1 初始化时自动生成
 ```
+
+Step 1 的 Markmap 内容模板存放在：
+
+- `assets/session-templates/00-脑图-template.mm.md`
 
 ---
 
@@ -114,6 +124,7 @@ learning/sessions/{slug}/
 learning/sessions/{slug}/
 ├── meta.md                    # 进度元数据（YAML frontmatter）
 ├── journal.md                 # 全程日志 + 用户自由笔记
+├── {slug}-脑图.mm.md          # Session 级知识脑图（Markmap）
 └── cycles/
     ├── cycle1/
     │   ├── diagnosis.md       # 水平诊断结果
@@ -129,16 +140,18 @@ learning/sessions/{slug}/
 
 ## 跳轮时的上下文加载规则
 
-| 跳入轮次 | 需要读取的历史文件 |
-|---------|----------------|
-| Cycle N（N>1） | `cycles/cycle{N-1}/assessment.md`（获取遗留盲区和水平） |
-| 复习模式 | `meta.md`（efactor、next_review）+ 最近一轮 `assessment.md` |
+| 跳入轮次       | 需要读取的历史文件                                          |
+| -------------- | ----------------------------------------------------------- |
+| Cycle N（N>1） | `cycles/cycle{N-1}/assessment.md`（获取遗留盲区和水平）     |
+| 复习模式       | `meta.md`（efactor、next_review）+ 最近一轮 `assessment.md` |
 
 ---
 
 ## 注意事项
 
 - 课程内容由 AI 实时生成，**只覆盖当前盲区**，不重复已掌握内容
+- Step 1 必须确保 session 级 Markmap 文件存在，但只负责创建，不负责后续自动更新
+- Markmap 模板应维护在 `assets/session-templates/00-脑图-template.mm.md`，后续调整模板优先改这个文件，而不是改脚本常量
 - `knowledge_level` 单轮增幅上限 +2，防止 Dunning-Kruger 效应
 - 轮间间隔 ≥ 3 天时，Step A 会自动用遗忘曲线衰减水平并进行热身检索校准
 - 复习模式采用 SM-2 算法动态调整间隔；复习得分极低时触发完整循环重学
