@@ -1,0 +1,47 @@
+{
+    "skill_name": "xhs-doctor",
+    "evals": [
+        {
+            "id": 1,
+            "prompt": "我这条小红书口播是讲 agent skill 的，但发出来前我自己都觉得开头留不住人。前几句是‘今天给大家讲一下什么是 skill，很多人其实对这个概念有误解，skill 本质上是一个封装好的工作流。’ 你别整篇重写，先告诉我为什么这里留不住人，再给我 3 个更像小红书口播的开头。",
+            "expected_output": "先指出开头不留人的机制问题，再给出 3 个不同方向的开头改写，不直接整篇重写。",
+            "files": [],
+            "expectations": [
+                "The response explains why the original opening fails to retain attention before proposing rewrites.",
+                "The diagnosis mentions at least one opening-mechanism issue such as missing audience identification, missing task scene, or missing result promise.",
+                "The response provides 3 alternative opening versions.",
+                "The response keeps the scope on the opening instead of rewriting the full script.",
+                "The response states that the opening should be fixed first or treats the opening as the priority layer."
+            ]
+        },
+        {
+            "id": 2,
+            "prompt": "我想把一段 AI workflow 演示改成小红书口播。下面是我现在这段原稿，明显很像教程文：‘Workflow 本质上是一种把复杂任务拆成多个模块协同完成的方法。它一般包含输入层、处理层和输出层。输入层负责接收任务，处理层负责推理和生成，输出层负责交付结果。理解这个概念之后，你就知道为什么 workflow 比单条 prompt 更强大。’ 你按小红书的节奏帮我处理，但先不要整稿重写，先判断最该动哪一层，然后给我一个局部改写方案。",
+            "expected_output": "先指出这段的问题主要在顺序和开头策略，再给局部改写方案，强调结果前置和演示优先，而不是直接整稿重写。",
+            "files": [],
+            "expectations": [
+                "The response points out that the passage starts with definition-first explanation instead of a result-first or demo-first opening.",
+                "The response chooses one priority layer to fix first before attempting a full rewrite.",
+                "The response recommends a result-first or demo-first order instead of keeping the current definition-first order.",
+                "The response provides at least one directly usable partial rewrite for this passage rather than only giving abstract advice or rewriting a full script immediately.",
+                "The response includes at least one XHS-style move such as a result promise, a visual anchor, a demo-first sentence, or a minimum action.",
+                "The directly usable rewrite remains natural and speakable rather than relying on overly decorative metaphors or ad-copy style phrasing."
+            ]
+        },
+        {
+            "id": 3,
+            "prompt": "我有一版讲‘怎么用 AI 把写口播稿时间从 2 小时压到 20 分钟’的口播稿，信息是全的，但我总觉得中间会掉线，结尾也太硬。下面是核心片段：‘以前我每次写口播稿，都是先想选题，再列结构，再补例子，再修句子，整个过程至少 2 小时。后来我把这个任务拆给 AI。它第一步先帮我整理素材，第二步给我一个结构，第三步再补成口播稿。这里其实涉及任务拆解、上下文管理、指令分层和多轮生成。任务拆解决定它怎么切问题，上下文管理决定它记住什么，指令分层决定每一步怎么执行，多轮生成决定最后出来的质量。理解这四层以后，你就会知道为什么这个 workflow 能稳定工作。总之，这个方法真的很有效。如果你喜欢的话记得点赞关注。’ 你先按留人层、节奏层、转化层帮我做诊断，指出最容易掉线的段落，再决定是先改中段还是先改结尾。",
+            "expected_output": "先做三层诊断，明确中段哪一段最容易掉线、结尾为什么发硬，然后决定本轮先改中段还是先改结尾，不要两边一起大修。",
+            "files": [],
+            "expectations": [
+                "The response diagnoses the draft using retention, rhythm, and conversion layers or clear equivalents of those three layers.",
+                "The response points out a likely dropout segment in the middle of the provided passage.",
+                "The response comments on why the ending feels weak, hard, or lacking carry-through based on the provided ending lines.",
+                "The response chooses either the middle section or the ending as the first priority instead of trying to fix both at once.",
+                "The response explains the reasoning for that priority decision.",
+                "After choosing the middle section or the ending, the response provides at least one directly usable replacement for that chosen section.",
+                "The directly usable replacement stays concise, natural, and easy to speak instead of becoming overly ornate or slogan-heavy."
+            ]
+        }
+    ]
+}

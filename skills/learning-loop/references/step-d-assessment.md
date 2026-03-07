@@ -183,7 +183,7 @@ EF = max(1.3, min(5.0, EF))
 
 ## 复习模式触发条件
 
-用户运行 `/learning-sop topic="..." action=resume` 时：
+用户运行 `/learning-loop topic="..." action=resume` 时：
 
 1. 读取 `meta.md` 中的 `next_review` 日期和 `mode`
 2. 若 `mode=review` 且今天 ≥ `next_review`：只执行 **C2 检索练习 + Step D**，约 15 分钟

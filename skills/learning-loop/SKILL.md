@@ -1,5 +1,5 @@
 ---
-name: learning-sop
+name: learning-loop
 description: AI 原生自适应深度学习工作流（Learning SOP），模拟 Benjamin Bloom 的 2 Sigma 个性化辅导效果。核心循环：水平诊断→按需生成课程→学习互动→测评→进入下一循环，AI 直接生成课程内容，含遗忘曲线支持（轮间衰减 + SM-2 动态复习间隔）。使用场景：(1) 用户想系统学习某个主题（"我想学 X"、"帮我深度学习 X"）(2) 用户想从指定循环继续学习（"从第 2 轮开始"、"cycle=2"）(3) 用户想查看某主题的学习进度（"status"、"查看进度"）(4) 用户想恢复上次中断的学习（"resume"、"继续"）触发关键词：学习、深度学习、SOP、费曼、知识拓扑、检索强化、元认知、复习计划
 ---
 
@@ -12,7 +12,7 @@ description: AI 原生自适应深度学习工作流（Learning SOP），模拟 
 ## 命令语法
 
 ```
-/learning-sop topic="主题名" [slug="custom-slug"] [cycle=N] [action=resume|status]
+/learning-loop topic="主题名" [slug="custom-slug"] [cycle=N] [action=resume|status]
 ```
 
 | 参数            | 说明                                 | 示例                             |
@@ -51,7 +51,7 @@ description: AI 原生自适应深度学习工作流（Learning SOP），模拟 
 ### Step 1：初始化 Session + 创建 Markmap 脑图
 
 ```bash
-python3 .agents/skills/learning-sop/scripts/init_session.py \
+python3 .agents/skills/learning-loop/scripts/init_session.py \
   --topic "{topic}" [--slug "{slug}"] \
   --sessions-dir learning/sessions \
   --action init
