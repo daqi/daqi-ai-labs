@@ -1,0 +1,84 @@
+{
+    "session": 1,
+    "mode": "teach",
+    "focus": {
+        "concept_ids": [
+            "concept-id"
+        ],
+        "skill_ids": [
+            "skill-id"
+        ]
+    },
+    "assessment": {
+        "mastery_from": 3.0,
+        "mastery_to": 4.2,
+        "resolved_misconceptions": [],
+        "active_misconceptions": [
+            "m-001"
+        ],
+        "next_recommended_action": "transfer-check",
+        "next_recommended_mode": "drill",
+        "summary_lines": [
+            "本次 session 的关键进展",
+            "本次 session 仍未解决的关键问题"
+        ]
+    },
+    "journal": {
+        "key_progress": "一句话写本次突破",
+        "remaining_issue": "一句话写本次残留问题",
+        "next_step": "一句话写下次最该继续的动作"
+    },
+    "overall_mastery": 4.2,
+    "learner_profile": {
+        "motivation": "为什么学",
+        "application_context": "要用在哪",
+        "target_depth": "practical",
+        "self_calibration_bias": "balanced"
+    },
+    "concept_updates": [
+        {
+            "concept_id": "concept-id",
+            "label": "概念名称",
+            "mastery": 4.2,
+            "confidence": 6,
+            "common_error_types": [
+                "concept-confusion"
+            ],
+            "misconception_ids": [
+                "m-001"
+            ],
+            "evidence_count_delta": 1
+        }
+    ],
+    "misconception_updates": [
+        {
+            "id": "m-001",
+            "statement": "当前稳定误解的描述",
+            "concept_ids": [
+                "concept-id"
+            ],
+            "severity": "high",
+            "status": "active",
+            "recommended_actions": [
+                "contrast",
+                "counterexample"
+            ]
+        }
+    ],
+    "tutor_preferences": {
+        "preferred_explanation_style": [
+            "analogy",
+            "example-first"
+        ],
+        "preferred_pacing": "medium",
+        "max_probe_rounds_before_hint": 2,
+        "notes": [
+            "当抽象概念卡住时，先上真实案例"
+        ]
+    },
+    "review_state": {
+        "efactor": 2.5,
+        "next_review": "",
+        "review_count": 0
+    }
+}

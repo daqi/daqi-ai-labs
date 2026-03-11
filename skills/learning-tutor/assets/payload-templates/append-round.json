@@ -1,0 +1,28 @@
+{
+    "session": 1,
+    "mode": "teach",
+    "focus": {
+        "concept_ids": [
+            "concept-id"
+        ],
+        "skill_ids": [
+            "skill-id"
+        ]
+    },
+    "transcript": {
+        "action": "probe",
+        "prompt_summary": "这一轮 tutor 发起了什么问题或任务",
+        "user_response_summary": "用户这轮回答暴露了什么理解状态",
+        "next_action": "contrast"
+    },
+    "evidence": {
+        "concept_id": "concept-id",
+        "skill_id": "skill-id",
+        "prompt_type": "explain",
+        "observed_error_type": "concept-confusion",
+        "intervention": "contrast",
+        "outcome": "improved",
+        "confidence_shift": 1,
+        "mastery_delta": 0.5
+    }
+}
