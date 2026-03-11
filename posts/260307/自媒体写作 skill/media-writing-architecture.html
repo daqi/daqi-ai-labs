@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Media Writing Skill Architecture</title>
+<style>
+  :root {
+    --font-display: 'Iowan Old Style', 'Baskerville', 'Songti SC', 'STSong', serif;
+    --font-body: 'Avenir Next', 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans CJK SC', sans-serif;
+    --font-mono: 'SF Mono', 'JetBrains Mono', 'Menlo', 'Monaco', monospace;
+
+    --bg: #faf6f1;
+    --surface: rgba(255, 252, 248, 0.88);
+    --surface-strong: #fffdf9;
+    --surface-soft: #f3ede5;
+    --border: rgba(63, 45, 28, 0.12);
+    --border-strong: rgba(63, 45, 28, 0.2);
+    --text: #2f241a;
+    --text-dim: #7b6b5d;
+    --ink: #1e3a5f;
+    --ink-dim: rgba(30, 58, 95, 0.1);
+    --terracotta: #c2410c;
+    --terracotta-dim: rgba(194, 65, 12, 0.1);
+    --sage: #5f7f38;
+    --sage-dim: rgba(95, 127, 56, 0.1);
+    --gold: #b98a27;
+    --gold-dim: rgba(185, 138, 39, 0.12);
+    --rosewood: #8a3048;
+    --rosewood-dim: rgba(138, 48, 72, 0.1);
+    --shadow: 0 18px 60px rgba(73, 53, 34, 0.08);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #191511;
+      --surface: rgba(33, 27, 22, 0.9);
+      --surface-strong: #28211b;
+      --surface-soft: #211b16;
+      --border: rgba(255, 240, 227, 0.08);
+      --border-strong: rgba(255, 240, 227, 0.14);
+      --text: #f3e9de;
+      --text-dim: #b9a898;
+      --ink: #8bb0dd;
+      --ink-dim: rgba(139, 176, 221, 0.14);
+      --terracotta: #fb923c;
+      --terracotta-dim: rgba(251, 146, 60, 0.14);
+      --sage: #b8d48a;
+      --sage-dim: rgba(184, 212, 138, 0.14);
+      --gold: #e8bf68;
+      --gold-dim: rgba(232, 191, 104, 0.14);
+      --rosewood: #f2a4b8;
+      --rosewood-dim: rgba(242, 164, 184, 0.14);
+      --shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+    }
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background:
+      radial-gradient(circle at 12% 10%, var(--terracotta-dim) 0%, transparent 28%),
+      radial-gradient(circle at 88% 22%, var(--ink-dim) 0%, transparent 24%),
+      radial-gradient(circle at 68% 92%, var(--sage-dim) 0%, transparent 30%),
+      linear-gradient(180deg, rgba(255,255,255,0.3), transparent 18%),
+      var(--bg);
+    padding: 32px;
+    min-height: 100vh;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  .wrap {
+    max-width: 1480px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 0 42px;
+  }
+
+  .main {
+    min-width: 0;
+  }
+
+  .toc {
+    position: sticky;
+    top: 24px;
+    align-self: start;
+    padding: 18px 0;
+    max-height: calc(100dvh - 48px);
+    overflow-y: auto;
+  }
+
+  .toc-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    padding-bottom: 12px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toc a {
+    display: block;
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 11px;
+    line-height: 1.45;
+    padding: 7px 10px;
+    margin-bottom: 2px;
+    border-left: 2px solid transparent;
+    border-radius: 7px;
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+  }
+
+  .toc a:hover,
+  .toc a.active {
+    color: var(--text);
+    background: var(--surface);
+    border-left-color: var(--terracotta);
+  }
+
+  .hero {
+    background: linear-gradient(135deg, var(--surface-strong), rgba(255,255,255,0.55));
+    border: 1px solid var(--border-strong);
+    border-radius: 28px;
+    padding: 34px 36px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    margin-bottom: 26px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    color: var(--terracotta);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 6vw, 5.4rem);
+    line-height: 0.92;
+    font-weight: 400;
+    letter-spacing: -0.04em;
+    margin-bottom: 16px;
+    max-width: 880px;
+  }
+
+  .hero-copy {
+    display: grid;
+    grid-template-columns: 1.4fr 0.9fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .lead {
+    font-size: 17px;
+    line-height: 1.8;
+    color: var(--text);
+    max-width: 760px;
+  }
+
+  .hero-note {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 20px;
+  }
+
+  .hero-note p + p {
+    margin-top: 10px;
+  }
+
+  .hero-note p {
+    font-size: 13px;
+    line-height: 1.7;
+    color: var(--text-dim);
+  }
+
+  .kpi-row {
+    margin-top: 28px;
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .kpi {
+    background: var(--surface-soft);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px 18px;
+    min-width: 0;
+  }
+
+  .kpi .num {
+    display: block;
+    font-family: var(--font-display);
+    font-size: 2.1rem;
+    line-height: 1;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .kpi .label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    margin-bottom: 8px;
+  }
+
+  .kpi .desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.55;
+  }
+
+  .section {
+    margin-bottom: 20px;
+    scroll-margin-top: 72px;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+
+  .section-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1.6px;
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 400;
+    letter-spacing: -0.03em;
+  }
+
+  .section-subtitle {
+    margin-bottom: 18px;
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.8;
+    max-width: 920px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .grid-2,
+  .grid-3,
+  .grid-4,
+  .pipeline,
+  .artifact-grid,
+  .route-grid,
+  .layer-grid,
+  .source-grid,
+  .rule-grid {
+    min-width: 0;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .ve-card {
+    min-width: 0;
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 18px 18px 16px;
+  }
+
+  .ve-card--hero {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--surface-strong) 82%, var(--gold) 18%), var(--surface-strong));
+    border-color: color-mix(in srgb, var(--border) 55%, var(--gold) 45%);
+  }
+
+  .ve-card--ink {
+    border-top: 3px solid var(--ink);
+  }
+
+  .ve-card--terracotta {
+    border-top: 3px solid var(--terracotta);
+  }
+
+  .ve-card--sage {
+    border-top: 3px solid var(--sage);
+  }
+
+  .ve-card--gold {
+    border-top: 3px solid var(--gold);
+  }
+
+  .ve-card--rosewood {
+    border-top: 3px solid var(--rosewood);
+  }
+
+  .card-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 12px;
+  }
+
+  .card-label::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .card-title {
+    font-size: 18px;
+    line-height: 1.35;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .card-copy {
+    font-size: 14px;
+    line-height: 1.75;
+    color: var(--text-dim);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+  }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 8px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: var(--surface-soft);
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+
+  .pipeline {
+    display: grid;
+    grid-template-columns: repeat(9, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .step {
+    min-width: 0;
+    position: relative;
+    background: var(--surface-strong);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 16px 14px 14px;
+  }
+
+  .step::after {
+    content: '→';
+    position: absolute;
+    top: 50%;
+    right: -10px;
+    transform: translateY(-50%);
+    color: var(--border-strong);
+    font-size: 18px;
+    font-family: var(--font-mono);
+  }
+
+  .step:last-child::after {
+    display: none;
+  }
+
+  .step-index {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 10px;
+  }
+
+  .step-title {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+
+  .step-copy {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--text-dim);
+  }
+
+  .callout {
+    margin-top: 14px;
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: linear-gradient(90deg, var(--ink-dim), transparent 90%);
+    border: 1px dashed color-mix(in srgb, var(--border) 45%, var(--ink) 55%);
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .artifact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .artifact-list,
+  .rule-list {
+    list-style: none;
+  }
+
+  .artifact-list li,
+  .rule-list li {
+    position: relative;
+    padding-left: 16px;
+    margin-bottom: 9px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.65;
+    overflow-wrap: break-word;
+  }
+
+  .artifact-list li::before,
+  .rule-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.68em;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .artifact-list li strong,
+  .rule-list li strong {
+    color: var(--text);
+  }
+
+  .route-grid,
+  .layer-grid,
+  .source-grid,
+  .rule-grid {
+    display: grid;
+    gap: 14px;
+  }
+
+  .route-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .layer-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .source-grid {
+    grid-template-columns: 1.05fr 1.05fr 0.9fr;
+  }
+
+  .rule-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tiny {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+
+  .footer-note {
+    padding: 20px 0 6px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.75;
+  }
+
+  .fade {
+    opacity: 0;
+    transform: translateY(14px);
+    animation: fadeUp 0.54s ease forwards;
+    animation-delay: calc(var(--i, 0) * 0.06s);
+  }
+
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-delay: 0ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media (max-width: 1220px) {
+    .hero-copy,
+    .source-grid,
+    .route-grid,
+    .layer-grid,
+    .artifact-grid,
+    .rule-grid,
+    .grid-4,
+    .grid-3,
+    .pipeline,
+    .kpi-row {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .step::after {
+      display: none;
+    }
+  }
+
+  @media (max-width: 1000px) {
+    body {
+      padding-top: 0;
+      padding-left: 24px;
+      padding-right: 24px;
+      padding-bottom: 28px;
+    }
+
+    .wrap {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .toc {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      overflow-x: auto;
+      max-height: none;
+      background: color-mix(in srgb, var(--bg) 84%, transparent 16%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      margin: 0 -24px 20px;
+      padding: 12px 24px;
+    }
+
+    .toc-title {
+      display: none;
+    }
+
+    .toc a {
+      white-space: nowrap;
+      flex-shrink: 0;
+      border-left: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 8px 8px 0 0;
+      padding: 7px 10px;
+      font-size: 10px;
+    }
+
+    .toc a.active,
+    .toc a:hover {
+      border-left-color: transparent;
+      border-bottom-color: var(--terracotta);
+    }
+
+    .section {
+      scroll-margin-top: 58px;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .hero,
+    .panel {
+      border-radius: 22px;
+      padding: 20px;
+    }
+
+    .hero-copy,
+    .source-grid,
+    .route-grid,
+    .layer-grid,
+    .artifact-grid,
+    .rule-grid,
+    .grid-2,
+    .grid-3,
+    .grid-4,
+    .pipeline,
+    .kpi-row {
+      grid-template-columns: 1fr;
+    }
+
+    h1 {
+      font-size: 3.1rem;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" id="toc">
+    <div class="toc-title">Contents</div>
+    <a href="#overview">01 概览</a>
+    <a href="#operating-model">02 运行模型</a>
+    <a href="#capability-stack">03 能力栈</a>
+    <a href="#artifact-chain">04 文件链路</a>
+    <a href="#knowledge-sources">05 依赖与扩展</a>
+    <a href="#guardrails">06 约束规则</a>
+  </nav>
+
+  <main class="main">
+    <section class="hero fade" style="--i:0" id="overview">
+      <div class="eyebrow">Media Writing Skill Architecture</div>
+      <h1>一个分步确认、逐步落盘的写作工作流</h1>
+      <div class="hero-copy">
+        <p class="lead">这个 skill 不是一次性吐出成稿的写作器，而是一台交互式内容生产流水线。它先判断任务类型，再锁定简报、骨架、叙事、说服、传播五层中间件，最后才整合主稿与平台改编。每推进一步，都要先提问、等待确认、写文件、再进入下一步。</p>
+        <div class="hero-note">
+          <p><span class="tiny">核心设计</span></p>
+          <p>把“写作”拆成可检查、可回退、可复用的中间产物链，而不是把所有判断埋进一次回复里。</p>
+          <p>目录固定写入 posts/YYMMDD/{slug}/，从会话记录到最终校验形成完整痕迹。</p>
+        </div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi">
+          <span class="label">Canonical Steps</span>
+          <span class="num">9</span>
+          <span class="desc">从 Step 0 初始化到 Step 8 最终校验。</span>
+        </div>
+        <div class="kpi">
+          <span class="label">Artifact Files</span>
+          <span class="num">8+</span>
+          <span class="desc">默认至少生成 00 到 08 这一组过程文件。</span>
+        </div>
+        <div class="kpi">
+          <span class="label">Task Routes</span>
+          <span class="num">6</span>
+          <span class="desc">从零写作、重写优化、观点文、个人表达、传播优化、多平台改编。</span>
+        </div>
+        <div class="kpi">
+          <span class="label">Core Layers</span>
+          <span class="num">4</span>
+          <span class="desc">结构、叙事、说服、传播四层同时覆盖。</span>
+        </div>
+        <div class="kpi">
+          <span class="label">Config Scopes</span>
+          <span class="num">2</span>
+          <span class="desc">项目级与用户级 EXTEND.md 共同提供默认值和扩展骨架。</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fade" style="--i:1" id="operating-model">
+      <div class="section-head">
+        <div class="section-num">01</div>
+        <h2 class="section-title">运行模型</h2>
+      </div>
+      <p class="section-subtitle">系统的主干不是“写文章”，而是“做决策”。先识别输入来自什么任务，再把写作拆进九个步骤。每一步都只推进一个关键判断，防止在信息不充分时直接产出失控成稿。</p>
+      <div class="panel">
+        <div class="grid-3">
+          <article class="ve-card ve-card--hero ve-card--ink">
+            <div class="card-label">Input Surface</div>
+            <div class="card-title">输入不是统一的</div>
+            <div class="card-copy">它可能是一个主题、一份旧稿、一段口播转文字、研究笔记、失败文案，或者仅仅是一句想表达的话。</div>
+            <div class="chips">
+              <span class="chip">主题</span>
+              <span class="chip">草稿</span>
+              <span class="chip">笔记</span>
+              <span class="chip">案例</span>
+            </div>
+          </article>
+          <article class="ve-card ve-card--terracotta">
+            <div class="card-label">Routing</div>
+            <div class="card-title">先判断任务类型</div>
+            <div class="card-copy">任务路由决定要读哪些参考资料、要补哪类中间件，以及该优先诊断还是优先生成。</div>
+          </article>
+          <article class="ve-card ve-card--sage">
+            <div class="card-label">Control Loop</div>
+            <div class="card-title">一轮只推进一件事</div>
+            <div class="card-copy">每一步必须遵守“提问或给待确认内容 → 等待用户回复 → 写文件 → 请求确认”的固定节奏。</div>
+          </article>
+        </div>
+
+        <div class="callout">如果用户试图跳步，skill 会先补齐缺失中间件再继续；如果用户已经给了完整草稿，也不会跳过流程，只是把更多精力放在诊断和重组，而不是重新收集素材。</div>
+
+        <div class="route-grid" style="margin-top:16px;">
+          <article class="ve-card ve-card--ink">
+            <div class="card-label">Route A</div>
+            <div class="card-title">从零写作</div>
+            <div class="card-copy">重点加载结构、叙事、传播三类参考，先补最小简报，再选骨架。</div>
+          </article>
+          <article class="ve-card ve-card--rosewood">
+            <div class="card-label">Route B</div>
+            <div class="card-title">重写优化 / 观点文</div>
+            <div class="card-copy">先诊断结构与说服链条，再决定是否重写与如何重写。</div>
+          </article>
+          <article class="ve-card ve-card--gold">
+            <div class="card-label">Route C</div>
+            <div class="card-title">个人表达 / 多平台改编</div>
+            <div class="card-copy">前者强化叙事细节，后者保留核心判断但改变节奏、顺序与表达形态。</div>
+          </article>
+        </div>
+
+        <div class="pipeline" style="margin-top:18px;">
+          <article class="step">
+            <div class="step-index">Step 0</div>
+            <div class="step-title">初始化会话</div>
+            <div class="step-copy">识别任务、读取扩展配置、创建 posts 目录、写 00-会话。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 1</div>
+            <div class="step-title">锁定简报</div>
+            <div class="step-copy">确认平台、读者、核心判断、素材与目标动作。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 2</div>
+            <div class="step-title">确定骨架</div>
+            <div class="step-copy">给出 1 到 3 个候选结构，并等待用户选择或授权代选。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 3</div>
+            <div class="step-title">补叙事张力</div>
+            <div class="step-copy">补场景、冲突、变化、细节，不让正文变成说明书。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 4</div>
+            <div class="step-title">建说服链</div>
+            <div class="step-copy">把证据、机制、反方、边界至少补齐三项。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 5</div>
+            <div class="step-title">设计传播点</div>
+            <div class="step-copy">独立产出标题、钩子、金句与转发动机。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 6</div>
+            <div class="step-title">整合主稿</div>
+            <div class="step-copy">基于已确认文件整合成文，不允许绕过前置确认。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 7</div>
+            <div class="step-title">平台改编</div>
+            <div class="step-copy">保持信息不变，只调整平台节奏、结构和表达形式。</div>
+          </article>
+          <article class="step">
+            <div class="step-index">Step 8</div>
+            <div class="step-title">最终校验</div>
+            <div class="step-copy">检查开头、场景、机制、标题匹配度与用户最终确认状态。</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fade" style="--i:2" id="capability-stack">
+      <div class="section-head">
+        <div class="section-num">02</div>
+        <h2 class="section-title">能力栈</h2>
+      </div>
+      <p class="section-subtitle">写作被建模成四层叠加。架构上的关键点在于：这四层不是并列的装饰项，而是后续每一步都要显式落盘、显式确认的中间件。</p>
+      <div class="panel">
+        <div class="layer-grid">
+          <article class="ve-card ve-card--ink">
+            <div class="card-label">Layer 1</div>
+            <div class="card-title">结构层</div>
+            <div class="card-copy">负责结论先行、分组顺序、段落边界与章节骨架，解决“写清楚”。</div>
+            <div class="chips">
+              <span class="chip">结论</span>
+              <span class="chip">分组</span>
+              <span class="chip">顺序</span>
+            </div>
+          </article>
+          <article class="ve-card ve-card--terracotta">
+            <div class="card-label">Layer 2</div>
+            <div class="card-title">叙事层</div>
+            <div class="card-copy">负责张力、场景、人物、节奏与细节，解决“写好看”。</div>
+            <div class="chips">
+              <span class="chip">场景</span>
+              <span class="chip">冲突</span>
+              <span class="chip">变化</span>
+            </div>
+          </article>
+          <article class="ve-card ve-card--sage">
+            <div class="card-label">Layer 3</div>
+            <div class="card-title">说服层</div>
+            <div class="card-copy">负责证据、机制、反方与边界，解决“写可信”。</div>
+            <div class="chips">
+              <span class="chip">证据</span>
+              <span class="chip">机制</span>
+              <span class="chip">边界</span>
+            </div>
+          </article>
+          <article class="ve-card ve-card--gold">
+            <div class="card-label">Layer 4</div>
+            <div class="card-title">传播层</div>
+            <div class="card-copy">负责标题、钩子、金句与转发动机，解决“写得出去”。</div>
+            <div class="chips">
+              <span class="chip">标题</span>
+              <span class="chip">钩子</span>
+              <span class="chip">转发</span>
+            </div>
+          </article>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <article class="ve-card ve-card--hero ve-card--rosewood">
+            <div class="card-label">Why This Matters</div>
+            <div class="card-title">它避免两类常见失败</div>
+            <div class="card-copy">一类是只修结构，最后像说明书；另一类是只追求标题和情绪，正文却没有支撑。四层拆分让“好看”和“可信”都能被显式检查。</div>
+          </article>
+          <article class="ve-card ve-card--gold">
+            <div class="card-label">Default Skeletons</div>
+            <div class="card-title">骨架库决定了正文主形状</div>
+            <div class="card-copy">内置五种主骨架：结论-原因-证据-动作、问题-误区-重构-方法、现象-机制-推演-决策、故事-冲突-反转-提炼、清单-分类-示例-边界。</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fade" style="--i:3" id="artifact-chain">
+      <div class="section-head">
+        <div class="section-num">03</div>
+        <h2 class="section-title">文件链路</h2>
+      </div>
+      <p class="section-subtitle">真正让这个 skill 可复盘的，不是提示词，而是它强制把每个决策沉淀成文件。用户可以在同一主题目录下看到整个生成链，而不是只拿到一篇无法解释来源的主稿。</p>
+      <div class="panel">
+        <div class="artifact-grid">
+          <article class="ve-card ve-card--ink">
+            <div class="card-label">Session Core</div>
+            <div class="card-title">初始化与简报</div>
+            <ul class="artifact-list">
+              <li><strong>00-会话.md</strong> 记录任务类型、平台、扩展配置、待确认项与下一步。</li>
+              <li><strong>01-简报.md</strong> 区分用户明确提供与模型推断待确认内容。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--terracotta">
+            <div class="card-label">Content Middlewares</div>
+            <div class="card-title">骨架到说服</div>
+            <ul class="artifact-list">
+              <li><strong>02-骨架.md</strong> 候选骨架、推荐理由、章节顺序、小结论。</li>
+              <li><strong>03-叙事.md</strong> 候选开场场景、核心冲突、关键变化、细节。</li>
+              <li><strong>04-说服.md</strong> 主张、证据、机制、反方、边界、风险点。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--sage">
+            <div class="card-label">Distribution</div>
+            <div class="card-title">传播与改编</div>
+            <ul class="artifact-list">
+              <li><strong>05-传播.md</strong> 标题、钩子、金句、转发动机。</li>
+              <li><strong>07-改编.md</strong> 同一判断在公众号、小红书、口播、短帖中的形态变化。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--gold">
+            <div class="card-label">Final Delivery</div>
+            <div class="card-title">主稿与收尾</div>
+            <ul class="artifact-list">
+              <li><strong>06-主稿.md</strong> 显式注明基于哪些已确认文件整合而成。</li>
+              <li><strong>08-校验.md</strong> 列出通过项、未通过项、建议修改与完成状态。</li>
+            </ul>
+          </article>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px;">
+          <article class="ve-card ve-card--hero ve-card--ink">
+            <div class="card-label">Storage Contract</div>
+            <div class="card-title">目录规则就是状态机</div>
+            <div class="card-copy">所有文件写入 posts/YYMMDD/{slug}/。命名冲突时追加 -v2、-v3，而不是覆盖旧决策。也就是说，文件系统本身承担了状态追踪与版本保护功能。</div>
+          </article>
+          <article class="ve-card ve-card--rosewood">
+            <div class="card-label">Rewrite Variant</div>
+            <div class="card-title">重写任务走另一条最小链</div>
+            <div class="card-copy">当输入是现有草稿时，至少要生成 00-会话、01-诊断、02-重写计划、03-主稿。它不是删减版，而是把“先诊断再重写”变成更短的专用路径。</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fade" style="--i:4" id="knowledge-sources">
+      <div class="section-head">
+        <div class="section-num">04</div>
+        <h2 class="section-title">依赖与扩展</h2>
+      </div>
+      <p class="section-subtitle">这个 skill 把“知识来源”和“执行模板”分开。参考资料负责原则与判断框架，模板负责落盘结构，EXTEND.md 负责项目级或个人级偏好注入。</p>
+      <div class="panel">
+        <div class="source-grid">
+          <article class="ve-card ve-card--ink">
+            <div class="card-label">References</div>
+            <div class="card-title">按任务路由读取的知识层</div>
+            <ul class="artifact-list">
+              <li><strong>structure-and-argument.md</strong> 决定骨架选择与论证链条。</li>
+              <li><strong>narrative-and-expression.md</strong> 给叙事抓手、表达节奏与细节策略。</li>
+              <li><strong>persuasion-and-trust.md</strong> 补说服结构，避免只有立场没有支撑。</li>
+              <li><strong>titles-and-distribution.md</strong> 约束标题和传播机制，不靠模板硬套。</li>
+              <li><strong>workflow-templates.md</strong> 提供最小简报与重写诊断清单。</li>
+              <li><strong>llm-prompts.md</strong> 在需要稳定格式时提供复用提示词模板。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--terracotta">
+            <div class="card-label">Templates</div>
+            <div class="card-title">按步骤落盘的结构层</div>
+            <ul class="artifact-list">
+              <li><strong>00-会话-template.md</strong> 初始化与进度可视化。</li>
+              <li><strong>01-简报 / 01-诊断</strong> 写作简报与草稿诊断双入口。</li>
+              <li><strong>02-骨架 / 02-重写计划</strong> 正常路径与重写路径双模板。</li>
+              <li><strong>03-叙事 到 08-校验</strong> 把五层中间件和最终 QA 变成固定文件结构。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--gold">
+            <div class="card-label">EXTEND.md</div>
+            <div class="card-title">外部偏好注入层</div>
+            <ul class="artifact-list">
+              <li><strong>项目级</strong> .daqi-skills/media-writing/EXTEND.md</li>
+              <li><strong>用户级</strong> $HOME/.daqi-skills/media-writing/EXTEND.md</li>
+              <li><strong>注入内容</strong> 默认平台、读者、风格、目标动作、全局规则、扩展骨架。</li>
+              <li><strong>优先级</strong> 用户当轮要求 &gt; 会话确认内容 &gt; 项目扩展 &gt; 用户扩展 &gt; 内置默认值。</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section fade" style="--i:5" id="guardrails">
+      <div class="section-head">
+        <div class="section-num">05</div>
+        <h2 class="section-title">约束规则</h2>
+      </div>
+      <p class="section-subtitle">这些规则决定了它为什么更像“工作流系统”而不是“写作提示词”。从交互模式到文件命名，再到诊断格式，所有约束都在压缩随机性，提升可解释性与可复用性。</p>
+      <div class="panel">
+        <div class="rule-grid">
+          <article class="ve-card ve-card--ink">
+            <div class="card-label">Interaction Guardrails</div>
+            <div class="card-title">不允许一步出整稿</div>
+            <ul class="rule-list">
+              <li>只要用户给的是模糊需求，就必须按回合制推进。</li>
+              <li>每一步都要先给摘要，再请求确认后继续。</li>
+              <li>用户跳步时，先补缺失中间件，而不是迎合跳步。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--terracotta">
+            <div class="card-label">Storage Guardrails</div>
+            <div class="card-title">不覆盖、只增量</div>
+            <ul class="rule-list">
+              <li>禁止覆盖已有文件，除非用户明确要求覆盖。</li>
+              <li>冲突命名通过 -v2、-v3 递增解决。</li>
+              <li>slug 压缩主题但保持语义，不为避重而随意改题。</li>
+            </ul>
+          </article>
+          <article class="ve-card ve-card--sage">
+            <div class="card-label">Reasoning Guardrails</div>
+            <div class="card-title">可以推断，但不能编造</div>
+            <ul class="rule-list">
+              <li>信息不足时可以补最小简报，但推断项必须标成待确认。</li>
+              <li>可留白、可写待补充，不能伪造经历、数据或案例。</li>
+              <li>诊断必须基于全文内容，而不是词频式套路判断。</li>
+            </ul>
+          </article>
+        </div>
+        <div class="footer-note">读图建议：如果你要继续扩这个 skill，最值得优先看的不是主稿模板，而是 Step 0 的初始化约束、Step 2 的骨架选择逻辑，以及 EXTEND.md 的优先级设计。这三处决定了它能否从“单次生成器”稳定升级成“可维护的写作操作系统”。</div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function() {
+  const toc = document.getElementById('toc');
+  if (!toc) return;
+  const links = toc.querySelectorAll('a');
+  const sections = [];
+
+  links.forEach((link) => {
+    const id = link.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) sections.push({ el, link });
+  });
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+      links.forEach((item) => item.classList.remove('active'));
+      const hit = sections.find((section) => section.el === entry.target);
+      if (!hit) return;
+      hit.link.classList.add('active');
+      if (window.innerWidth <= 1000) {
+        hit.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    });
+  }, { rootMargin: '-10% 0px -80% 0px' });
+
+  sections.forEach((section) => observer.observe(section.el));
+
+  links.forEach((link) => {
+    link.addEventListener('click', (event) => {
+      event.preventDefault();
+      const id = link.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + id);
+    });
+  });
+})();
+</script>
+</body>
+</html>
