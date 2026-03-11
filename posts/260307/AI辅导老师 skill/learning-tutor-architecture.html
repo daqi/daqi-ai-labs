@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learning Tutor 架构图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-body: 'DM Sans', 'PingFang SC', 'Noto Sans SC', sans-serif;
+      --font-mono: 'Fira Code', 'SF Mono', Monaco, monospace;
+
+      --bg: #f4f7fb;
+      --surface: rgba(255, 255, 255, 0.84);
+      --surface-strong: rgba(255, 255, 255, 0.96);
+      --surface-soft: rgba(236, 241, 247, 0.92);
+      --line: rgba(30, 58, 95, 0.12);
+      --line-strong: rgba(30, 58, 95, 0.24);
+      --text: #1f2937;
+      --text-dim: #607086;
+      --navy: #1e3a5f;
+      --navy-dim: rgba(30, 58, 95, 0.08);
+      --gold: #c9921a;
+      --gold-dim: rgba(201, 146, 26, 0.12);
+      --teal: #0f766e;
+      --teal-dim: rgba(15, 118, 110, 0.12);
+      --green: #28744d;
+      --green-dim: rgba(40, 116, 77, 0.12);
+      --rose: #a33a47;
+      --rose-dim: rgba(163, 58, 71, 0.12);
+      --shadow: 0 20px 50px rgba(23, 37, 84, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1724;
+        --surface: rgba(18, 27, 41, 0.84);
+        --surface-strong: rgba(22, 33, 49, 0.96);
+        --surface-soft: rgba(14, 23, 36, 0.96);
+        --line: rgba(226, 232, 240, 0.08);
+        --line-strong: rgba(226, 232, 240, 0.18);
+        --text: #e5edf6;
+        --text-dim: #9aacc1;
+        --navy: #7fb3ff;
+        --navy-dim: rgba(127, 179, 255, 0.14);
+        --gold: #f2c96d;
+        --gold-dim: rgba(242, 201, 109, 0.16);
+        --teal: #62d1c5;
+        --teal-dim: rgba(98, 209, 197, 0.14);
+        --green: #88d3a1;
+        --green-dim: rgba(136, 211, 161, 0.14);
+        --rose: #f0a4af;
+        --rose-dim: rgba(240, 164, 175, 0.14);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      min-width: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text);
+      font-family: var(--font-body);
+      background:
+        radial-gradient(circle at 0% 0%, var(--gold-dim), transparent 28%),
+        radial-gradient(circle at 100% 0%, var(--navy-dim), transparent 34%),
+        linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0) 18%),
+        linear-gradient(var(--line) 1px, transparent 1px),
+        linear-gradient(90deg, var(--line) 1px, transparent 1px),
+        var(--bg);
+      background-size: auto, auto, auto, 24px 24px, 24px 24px, auto;
+      padding: 40px;
+    }
+
+    a {
+      color: var(--navy);
+    }
+
+    .wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 190px 1fr;
+      gap: 0 40px;
+    }
+
+    .main {
+      min-width: 0;
+    }
+
+    .toc {
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      max-height: calc(100dvh - 48px);
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .toc-title {
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 10px;
+      margin-bottom: 3px;
+      text-decoration: none;
+      color: var(--text-dim);
+      border-left: 2px solid transparent;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      line-height: 1.4;
+      transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    }
+
+    .toc a:hover,
+    .toc a.active {
+      color: var(--text);
+      background: var(--surface);
+      border-left-color: var(--gold);
+    }
+
+    .hero {
+      background: linear-gradient(145deg, var(--surface-strong), rgba(255,255,255,0.5));
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 36px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .eyebrow,
+    .section-label,
+    .mini-label,
+    .chip,
+    .stat-label {
+      font-family: var(--font-mono);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .eyebrow::before,
+    .section-label .dot,
+    .mini-label::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: currentColor;
+      flex: none;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 60px);
+      line-height: 0.96;
+      letter-spacing: -0.05em;
+      max-width: 11ch;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 28px;
+      align-items: start;
+      margin-top: 18px;
+    }
+
+    .lead {
+      margin: 0;
+      max-width: 70ch;
+      color: var(--text-dim);
+      font-size: 18px;
+      line-height: 1.7;
+    }
+
+    .hero-panel {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .stat-card,
+    .card,
+    .tree,
+    .command-card,
+    .flow-step,
+    .code-file,
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .stat-card {
+      padding: 16px 18px;
+    }
+
+    .stat-value {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin: 0 0 4px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .stat-desc {
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--text-dim);
+      margin: 0;
+    }
+
+    .hero-panel .callout {
+      padding: 18px 20px;
+      background: linear-gradient(180deg, var(--navy-dim), transparent), var(--surface);
+    }
+
+    .callout strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .callout p {
+      margin: 0;
+      color: var(--text-dim);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      font-size: 10px;
+      color: var(--text-dim);
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+    }
+
+    .section {
+      margin-top: 26px;
+      padding: 28px;
+      background: var(--surface-strong);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .sec-head {
+      margin-bottom: 18px;
+    }
+
+    .section-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .sec-title-row {
+      display: flex;
+      gap: 18px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .sec-title {
+      margin: 0;
+      font-size: clamp(24px, 2.8vw, 38px);
+      letter-spacing: -0.04em;
+    }
+
+    .sec-subtitle {
+      margin: 10px 0 0;
+      max-width: 80ch;
+      color: var(--text-dim);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .mermaid-wrap {
+      position: relative;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0)), var(--surface-soft);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 58px 18px 18px;
+      overflow: hidden;
+    }
+
+    .diagram-toolbar {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      gap: 8px;
+      z-index: 3;
+    }
+
+    .diagram-toolbar button {
+      border: 1px solid var(--line);
+      background: var(--surface-strong);
+      color: var(--text);
+      border-radius: 10px;
+      width: 34px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 16px;
+      font-family: var(--font-mono);
+      transition: transform 0.16s ease, border-color 0.16s ease;
+    }
+
+    .diagram-toolbar button:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+    }
+
+    .mermaid-scroll {
+      overflow: auto;
+      display: flex;
+      justify-content: center;
+      cursor: grab;
+    }
+
+    .mermaid-scroll.dragging {
+      cursor: grabbing;
+      user-select: none;
+    }
+
+    .mermaid-stage {
+      transform-origin: center top;
+      transition: transform 0.18s ease;
+      padding: 10px 10px 0;
+    }
+
+    .mermaid {
+      min-width: 860px;
+    }
+
+    .mermaid .nodeLabel,
+    .mermaid .label,
+    .mermaid .edgeLabel {
+      color: var(--text) !important;
+      font-family: var(--font-body) !important;
+    }
+
+    .mermaid .edgeLabel,
+    .mermaid .edgeLabel rect {
+      fill: var(--bg) !important;
+      color: var(--text-dim) !important;
+    }
+
+    .mermaid .node rect,
+    .mermaid .node circle,
+    .mermaid .node polygon,
+    .mermaid .node path {
+      stroke-width: 1.5px !important;
+    }
+
+    .detail-grid,
+    .state-grid,
+    .commands,
+    .bottom-grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .detail-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .state-grid {
+      grid-template-columns: 1.1fr 0.9fr;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .commands {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .bottom-grid {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 18px;
+    }
+
+    .card {
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: auto -24px -24px auto;
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.14), transparent 72%);
+      pointer-events: none;
+    }
+
+    .card--navy { border-top: 3px solid var(--navy); }
+    .card--gold { border-top: 3px solid var(--gold); }
+    .card--teal { border-top: 3px solid var(--teal); }
+    .card--green { border-top: 3px solid var(--green); }
+    .card--rose { border-top: 3px solid var(--rose); }
+
+    .mini-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-dim);
+      font-size: 10px;
+      margin-bottom: 10px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 20px;
+      letter-spacing: -0.03em;
+    }
+
+    .card p,
+    .card li,
+    .command-card p,
+    .tree p,
+    .flow-step p {
+      margin: 0;
+      color: var(--text-dim);
+      line-height: 1.65;
+      font-size: 14px;
+      overflow-wrap: break-word;
+    }
+
+    ul.clean {
+      list-style: none;
+      padding: 0;
+      margin: 12px 0 0;
+      display: grid;
+      gap: 9px;
+    }
+
+    ul.clean li {
+      position: relative;
+      padding-left: 18px;
+    }
+
+    ul.clean li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0.62em;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .flow-line {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .flow-step {
+      padding: 16px;
+      position: relative;
+      min-height: 164px;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      right: -10px;
+      width: 18px;
+      height: 2px;
+      background: var(--line-strong);
+    }
+
+    .flow-num {
+      display: inline-flex;
+      width: 32px;
+      height: 32px;
+      align-items: center;
+      justify-content: center;
+      border-radius: 10px;
+      background: var(--gold-dim);
+      color: var(--gold);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      margin-bottom: 12px;
+    }
+
+    .tree {
+      padding: 20px;
+      background: linear-gradient(180deg, var(--navy-dim), transparent 28%), var(--surface);
+    }
+
+    .tree pre,
+    .command-card pre {
+      margin: 12px 0 0;
+      padding: 14px;
+      border-radius: 14px;
+      background: var(--surface-soft);
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.7;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .command-card {
+      padding: 20px;
+      background: var(--surface);
+    }
+
+    .command-card h3 {
+      margin: 0 0 8px;
+      font-size: 22px;
+      letter-spacing: -0.03em;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid var(--line);
+      background: var(--surface-soft);
+      color: var(--text-dim);
+    }
+
+    .footer-note {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--line);
+      color: var(--text-dim);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero,
+    .section {
+      animation: fadeUp 0.46s ease both;
+    }
+
+    .section:nth-of-type(2) { animation-delay: 0.04s; }
+    .section:nth-of-type(3) { animation-delay: 0.08s; }
+    .section:nth-of-type(4) { animation-delay: 0.12s; }
+    .section:nth-of-type(5) { animation-delay: 0.16s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    @media (max-width: 1100px) {
+      body {
+        padding: 24px;
+      }
+
+      .wrap {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+
+      .toc {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        margin: -24px -24px 18px;
+        padding: 14px 24px;
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        background: color-mix(in srgb, var(--bg) 86%, transparent);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+        max-height: none;
+      }
+
+      .toc-title {
+        display: none;
+      }
+
+      .toc a {
+        white-space: nowrap;
+        border-left: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 8px 8px 0 0;
+        flex: none;
+      }
+
+      .toc a:hover,
+      .toc a.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--gold);
+      }
+
+      .hero-grid,
+      .detail-grid,
+      .state-grid,
+      .commands,
+      .bottom-grid,
+      .flow-line {
+        grid-template-columns: 1fr;
+      }
+
+      .flow-step:not(:last-child)::after {
+        top: auto;
+        bottom: -8px;
+        right: auto;
+        left: 50%;
+        width: 2px;
+        height: 16px;
+      }
+
+      .sec-head {
+        scroll-margin-top: 72px;
+      }
+
+      .mermaid {
+        min-width: 720px;
+      }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 16px;
+      }
+
+      .hero,
+      .section {
+        padding: 22px;
+        border-radius: 20px;
+      }
+
+      h1 {
+        max-width: none;
+      }
+
+      .stat-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .toc {
+        margin: -16px -16px 16px;
+        padding: 12px 16px;
+      }
+
+      .mermaid {
+        min-width: 640px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav class="toc" id="toc">
+      <div class="toc-title">Contents</div>
+      <a href="#s1">总览拓扑</a>
+      <a href="#s2">运行时模块</a>
+      <a href="#s3">回合教学循环</a>
+      <a href="#s4">记忆与文件层</a>
+      <a href="#s5">脚本与入口</a>
+    </nav>
+
+    <main class="main">
+      <section class="hero">
+        <div class="eyebrow">Skill Architecture</div>
+        <h1>Learning Tutor 不是课程流水线，而是一个回合级导师引擎</h1>
+        <div class="hero-grid">
+          <div>
+            <p class="lead">这个 skill 的第一抽象不是“课程步骤”，而是“学习者当前状态 + 下一拍教学动作”。它围绕会话加载、状态判断、教学动作调度、证据写入和长期 learner model 演化运转，核心价值来自实时干预，而不是一次性讲完。</p>
+            <div class="chip-row">
+              <span class="chip">Session Bootstrap</span>
+              <span class="chip">Tutor Orchestrator</span>
+              <span class="chip">Intervention Engine</span>
+              <span class="chip">Assessment + Review</span>
+              <span class="chip">Learner Memory</span>
+            </div>
+            <div class="stat-grid">
+              <div class="stat-card">
+                <div class="stat-label">Primary Unit</div>
+                <p class="stat-value">1 回合</p>
+                <p class="stat-desc">每次只盯一个焦点 concept 或 skill，不把 session 变成大课件。</p>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Core Asset</div>
+                <p class="stat-value">Learner Model</p>
+                <p class="stat-desc">系统沉淀“这个人怎么学、常错什么、该怎么教”，不是只记内容进度。</p>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Control Logic</div>
+                <p class="stat-value">State Machine</p>
+                <p class="stat-desc">在 diagnose、teach、drill、remediate、review 间动态切换。</p>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Persistence</div>
+                <p class="stat-value">文件协议</p>
+                <p class="stat-desc">topic 级长期记忆与 session 级证据记录分层存放，支持无缝续学。</p>
+              </div>
+            </div>
+          </div>
+          <div class="hero-panel">
+            <div class="callout">
+              <strong>与 learning-loop 的边界</strong>
+              <p>learning-loop 偏流程型学习 SOP；learning-tutor 偏真人老师式互动。前者按轮生成学习流程，后者按回答实时追问、纠错、降维和切换讲法。</p>
+            </div>
+            <div class="callout">
+              <strong>关键判定信号</strong>
+              <p>系统不会把“用户说懂了”当作懂了，而是通过 probe、practice、transfer 暴露证据，再决定升级、降维或进入 remediate。</p>
+            </div>
+            <div class="callout">
+              <strong>架构上的真正闭环</strong>
+              <p>用户回答不是终点，而是下一动作的输入；而每轮证据又会反过来更新 meta、learner-model、misconceptions 与下次 review 计划。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s1">
+        <div class="sec-head">
+          <div class="section-label"><span class="dot"></span>1. Overview</div>
+          <div class="sec-title-row">
+            <h2 class="sec-title">总览拓扑</h2>
+          </div>
+          <p class="sec-subtitle">上层是用户请求和当前会话状态，下层是调度器与长期记忆层。真正的控制核心不是脚本本身，而是 Tutor Orchestrator 按当前 mode 和错误类型选择下一拍动作。</p>
+        </div>
+        <div class="mermaid-wrap" data-mermaid-wrap>
+          <div class="diagram-toolbar">
+            <button type="button" data-zoom-in>+</button>
+            <button type="button" data-zoom-out>-</button>
+            <button type="button" data-zoom-reset>0</button>
+            <button type="button" data-expand>⛶</button>
+          </div>
+          <div class="mermaid-scroll" data-mermaid-scroll>
+            <div class="mermaid-stage" data-mermaid-stage>
+              <pre class="mermaid">
+flowchart TD
+  U["用户请求<br/>start / resume / review / focus"] --> B["Session Bootstrap<br/>识别模式 + 加载 topic session"]
+  B --> O["Tutor Orchestrator<br/>状态机 + 当前焦点决策"]
+  O --> I["Intervention Engine<br/>probe / teach / hint / contrast / transfer"]
+  I --> R["用户回答<br/>暴露正确信号或错误类型"]
+  R --> A["Assessment Engine<br/>识别 error_type / positive signal"]
+  A --> O
+  O --> P["Persistence Layer<br/>meta · learner-model · misconceptions · evidence"]
+  P --> O
+  O --> V["Review Planner<br/>下次复习点 + review_state"]
+
+  D["Domain Model<br/>concept / relation / skill"] -. 提供教学最小单元 .-> O
+  L["Learner Model<br/>mastery / confidence / 偏好 / 稳定误解"] -. 提供个体画像 .-> O
+  S["CLI Scripts<br/>init_session.py · update_session.py"] -. 管理文件脚手架与写入 .-> P
+
+  classDef primary fill:#1e3a5f22,stroke:#1e3a5f,stroke-width:1.8px;
+  classDef decision fill:#c9921a22,stroke:#c9921a,stroke-width:1.8px;
+  classDef memory fill:#0f766e22,stroke:#0f766e,stroke-width:1.8px;
+  classDef external fill:#28744d22,stroke:#28744d,stroke-width:1.8px;
+  class U,R,S external;
+  class B,O,I,A,V primary;
+  class P,D,L memory;
+              </pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s2">
+        <div class="sec-head">
+          <div class="section-label"><span class="dot"></span>2. Runtime</div>
+          <h2 class="sec-title">运行时模块拆解</h2>
+          <p class="sec-subtitle">如果把整个 skill 看成一个在线老师，这几块分别回答：先读什么、先盯什么、怎么问、怎么纠错、怎么记住这个学生。</p>
+        </div>
+        <div class="detail-grid">
+          <article class="card card--navy">
+            <div class="mini-label">Bootstrap</div>
+            <h3>Session Bootstrap</h3>
+            <p>负责新主题初始化、继续上次 session、切 review 模式，以及从历史文件中恢复当前上下文。</p>
+            <ul class="clean">
+              <li>判断 diagnose / teach / drill / remediate / review</li>
+              <li>锁定 active_session、current_mode、current_focus</li>
+              <li>把 topic 级长期记忆交给调度器</li>
+            </ul>
+          </article>
+          <article class="card card--gold">
+            <div class="mini-label">Control Core</div>
+            <h3>Tutor Orchestrator</h3>
+            <p>这是 skill 的大脑。它不是线性流程，而是一个会回跳的状态机：先判断学员状态，再决定下一拍该讲、该问、还是该修误解。</p>
+            <ul class="clean">
+              <li>选择当前 focus concept 或 skill</li>
+              <li>判断教学动作是否失效并切换策略</li>
+              <li>在 NEXT_DECISION 中决定 continue / remediate / switch / close</li>
+            </ul>
+          </article>
+          <article class="card card--teal">
+            <div class="mini-label">Intervention</div>
+            <h3>教学动作引擎</h3>
+            <p>把“知道用户答错了”翻译成“该怎么教”。系统显式区分 probe、hint、contrast、counterexample、reframe、transfer 等动作。</p>
+            <ul class="clean">
+              <li>同一低效动作不能连续硬顶</li>
+              <li>连续两轮失败必须降维</li>
+              <li>误解稳定复发则升级到 remediate</li>
+            </ul>
+          </article>
+          <article class="card card--green">
+            <div class="mini-label">Assessment</div>
+            <h3>证据与错误类型识别</h3>
+            <p>收到回答后先分类再回应，避免一错就把标准答案端出来。真正记录的是 evidence，而不是模糊印象。</p>
+            <ul class="clean">
+              <li>识别 concept-confusion、boundary-failure、transfer-failure 等错误</li>
+              <li>也识别 accurate-transfer、creative-link 等正向信号</li>
+              <li>用 evidence 推动 mastery、confidence 与 next action</li>
+            </ul>
+          </article>
+          <article class="card card--rose">
+            <div class="mini-label">Memory</div>
+            <h3>Learner Model</h3>
+            <p>存的是“这个人怎样学”而不是“这个主题讲到哪”。这让 tutor 在第二次、第三次继续时，越来越像认识这个学生。</p>
+            <ul class="clean">
+              <li>全局层：动机、应用场景、目标深度、自评偏差</li>
+              <li>概念层：mastery、confidence、常见错误、misconception IDs</li>
+              <li>行为层：提示阈值、节奏偏好、讲解偏好</li>
+            </ul>
+          </article>
+          <article class="card card--navy">
+            <div class="mini-label">Knowledge</div>
+            <h3>Domain Model + Review Planner</h3>
+            <p>Domain Model 把主题拆成可诊断的最小单元，Review Planner 决定下次优先抽查哪个脆弱点，形成长期维护闭环。</p>
+            <ul class="clean">
+              <li>主题拆成 concept / relation / skill</li>
+              <li>判断卡点是前置缺失还是迁移失败</li>
+              <li>复习模式优先打最脆弱且最关键的点</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="s3">
+        <div class="sec-head">
+          <div class="section-label"><span class="dot"></span>3. Loop</div>
+          <h2 class="sec-title">回合教学循环</h2>
+          <p class="sec-subtitle">单轮交互的正确颗粒度是“一个焦点 + 一个动作 + 一个可判断的回答”。这也是它和一次性长文讲解最根本的分界线。</p>
+        </div>
+        <div class="flow-line">
+          <div class="flow-step">
+            <div class="flow-num">01</div>
+            <h3>选焦点</h3>
+            <p>优先用户明确卡住的点，其次历史最高风险误解，再其次 learner model 中关键且脆弱的 concept。</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">02</div>
+            <h3>选动作</h3>
+            <p>根据当前 mode 与回答状态，在 probe、teach、hint、contrast、practice、transfer 中选一个最有效动作。</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">03</div>
+            <h3>收回答</h3>
+            <p>用户回答不是被动接收内容，而是暴露真实掌握度、自评偏差和表达断点的关键证据。</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">04</div>
+            <h3>识别错误</h3>
+            <p>先判断是 definition-gap、causal-break、retrieval-failure，还是准确迁移与创造性链接，再决定下一步。</p>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">05</div>
+            <h3>写入证据</h3>
+            <p>evidence 进入 transcript、evidence、assessment，并反向更新 meta、learner-model、misconceptions 与 review_state。</p>
+          </div>
+        </div>
+        <div class="footer-note">退出条件同样是架构的一部分：当前点已过关、收益开始下降、或识别出下次更适合单独开新 session 时，系统才结束本次 tutor session。</div>
+      </section>
+
+      <section class="section" id="s4">
+        <div class="sec-head">
+          <div class="section-label"><span class="dot"></span>4. Persistence</div>
+          <h2 class="sec-title">记忆与文件协议</h2>
+          <p class="sec-subtitle">这个 skill 的“长期性”来自显式文件协议。topic 级目录保存长期画像，sessionN 保存单次交互证据；二者分层，才支持后续继续学而不是每次重新摸底。</p>
+        </div>
+        <div class="state-grid">
+          <div class="tree">
+            <div class="mini-label">Topic Session Root</div>
+            <h3>目录结构</h3>
+            <pre>learning/tutor-sessions/{slug}/
+├── meta.md
+├── journal.md
+├── domain-model.md
+├── learner-model.md
+├── misconceptions.md
+├── tutor-preferences.md
+└── sessions/
+    ├── session1/
+    │   ├── plan.md
+    │   ├── transcript.md
+    │   ├── evidence.md
+    │   └── assessment.md
+    └── sessionN/</pre>
+          </div>
+          <div class="bottom-grid" style="margin-top:0;">
+            <article class="card card--gold">
+              <div class="mini-label">Global State</div>
+              <h3>meta + journal</h3>
+              <p>meta.md 提供当前 mode、focus、overall mastery、review_state。journal.md 以追加式方式记录每次 session 摘要，避免上下文丢失。</p>
+            </article>
+            <article class="card card--teal">
+              <div class="mini-label">Knowledge Shape</div>
+              <h3>domain-model</h3>
+              <p>把 topic 从一句话拆成 concept、relation、skill，给调度器一个可诊断、可教学、可评估的对象集合。</p>
+            </article>
+            <article class="card card--rose">
+              <div class="mini-label">Human Memory</div>
+              <h3>learner-model + misconceptions</h3>
+              <p>前者记录长期掌握与偏好，后者记录稳定误解及其 active/watch/resolved 状态，是 remediate 的直接输入。</p>
+            </article>
+            <article class="card card--green">
+              <div class="mini-label">Session Evidence</div>
+              <h3>plan / transcript / evidence / assessment</h3>
+              <p>把单次 session 的计划、关键回合摘要、证据条目和收尾总结拆开，既能复盘，也能喂回长期模型。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="s5">
+        <div class="sec-head">
+          <div class="section-label"><span class="dot"></span>5. Entry Points</div>
+          <h2 class="sec-title">脚本与操作入口</h2>
+          <p class="sec-subtitle">实现层没有把所有逻辑藏进 prompt，而是显式提供脚手架脚本和 payload 模板。这样 skill 的行为既可自动调度，也可被可靠地写回文件系统。</p>
+        </div>
+        <div class="commands">
+          <article class="command-card">
+            <div class="mini-label">Bootstrap Script</div>
+            <h3>init_session.py</h3>
+            <p>负责 topic 级目录存在性、基础文件缺省、创建新的 sessionN 脚手架，以及返回当前状态摘要。</p>
+            <div class="badge-row">
+              <span class="badge">action=init</span>
+              <span class="badge">action=status</span>
+              <span class="badge">action=start-session</span>
+            </div>
+            <pre>python3 skills/learning-tutor/scripts/init_session.py \
+  --topic "主题" \
+  --sessions-dir learning/tutor-sessions \
+  --action start-session \
+  --mode teach</pre>
+          </article>
+          <article class="command-card">
+            <div class="mini-label">Update Script</div>
+            <h3>update_session.py</h3>
+            <p>负责追加 transcript、写 evidence、收尾 assessment，并同步更新 learner-model、misconceptions、journal 与 meta。</p>
+            <div class="badge-row">
+              <span class="badge">append-round</span>
+              <span class="badge">finalize-session</span>
+              <span class="badge">payload-file</span>
+            </div>
+            <pre>python3 skills/learning-tutor/scripts/update_session.py \
+  --topic "主题" \
+  --sessions-dir learning/tutor-sessions \
+  --action finalize-session \
+  --payload-file /tmp/finalize-session.json</pre>
+          </article>
+        </div>
+        <div class="bottom-grid">
+          <article class="card card--navy">
+            <div class="mini-label">Payload Templates</div>
+            <h3>机器可写输入协议</h3>
+            <p>append-round.json 和 finalize-session.json 让状态更新不靠临时口头约定字段名，而是落到稳定的写入契约。</p>
+            <ul class="clean">
+              <li>round 级写入 transcript 与 evidence</li>
+              <li>session 级写入 assessment 与 journal 摘要</li>
+              <li>concept_updates / misconception_updates 驱动长期状态变化</li>
+            </ul>
+          </article>
+          <article class="card card--gold">
+            <div class="mini-label">Architecture Reading</div>
+            <h3>设计上的一条底线</h3>
+            <p>这个 skill 成功与否，不取决于一次输出多漂亮，而取决于它能否在多次继续学习中越来越理解“同一个人”的掌握状态、误解模式和节奏偏好。</p>
+            <ul class="clean">
+              <li>不把用户自评直接当真</li>
+              <li>不为了顺滑而跳过逻辑断点</li>
+              <li>不为覆盖面牺牲误解修复</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      securityLevel: 'loose',
+      themeVariables: {
+        primaryColor: isDark ? '#7fb3ff22' : '#1e3a5f18',
+        primaryBorderColor: isDark ? '#7fb3ff' : '#1e3a5f',
+        primaryTextColor: isDark ? '#e5edf6' : '#1f2937',
+        secondaryColor: isDark ? '#f2c96d22' : '#c9921a18',
+        secondaryBorderColor: isDark ? '#f2c96d' : '#c9921a',
+        secondaryTextColor: isDark ? '#e5edf6' : '#1f2937',
+        tertiaryColor: isDark ? '#62d1c522' : '#0f766e18',
+        tertiaryBorderColor: isDark ? '#62d1c5' : '#0f766e',
+        tertiaryTextColor: isDark ? '#e5edf6' : '#1f2937',
+        lineColor: isDark ? '#8ba2bf' : '#607086',
+        noteBkgColor: isDark ? '#162131' : '#ffffff',
+        noteBorderColor: isDark ? '#f2c96d' : '#c9921a',
+        noteTextColor: isDark ? '#e5edf6' : '#1f2937',
+        fontSize: '18px',
+        fontFamily: 'DM Sans'
+      },
+      flowchart: {
+        curve: 'basis',
+        nodeSpacing: 40,
+        rankSpacing: 60,
+        htmlLabels: true
+      }
+    });
+
+    await mermaid.run({ querySelector: '.mermaid' });
+
+    function openMermaidInNewTab(svgMarkup) {
+      const doc = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Learning Tutor Overview</title><style>body{margin:0;display:grid;place-items:center;min-height:100vh;background:${isDark ? '#0f1724' : '#f4f7fb'};}svg{max-width:96vw;max-height:96vh;height:auto;width:auto;font-family:DM Sans,sans-serif;}</style></head><body>${svgMarkup}</body></html>`;
+      const url = URL.createObjectURL(new Blob([doc], { type: 'text/html' }));
+      window.open(url, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    document.querySelectorAll('[data-mermaid-wrap]').forEach((wrap) => {
+      const scroll = wrap.querySelector('[data-mermaid-scroll]');
+      const stage = wrap.querySelector('[data-mermaid-stage]');
+      const svg = wrap.querySelector('svg');
+      let zoom = 1.18;
+      let drag = null;
+      let suppressClick = false;
+
+      const applyZoom = () => {
+        stage.style.transform = `scale(${zoom})`;
+      };
+      applyZoom();
+
+      wrap.querySelector('[data-zoom-in]').addEventListener('click', () => {
+        zoom = Math.min(2.2, zoom + 0.12);
+        applyZoom();
+      });
+
+      wrap.querySelector('[data-zoom-out]').addEventListener('click', () => {
+        zoom = Math.max(0.7, zoom - 0.12);
+        applyZoom();
+      });
+
+      wrap.querySelector('[data-zoom-reset]').addEventListener('click', () => {
+        zoom = 1.18;
+        applyZoom();
+      });
+
+      wrap.querySelector('[data-expand]').addEventListener('click', () => {
+        if (svg) {
+          openMermaidInNewTab(svg.outerHTML);
+        }
+      });
+
+      scroll.addEventListener('wheel', (event) => {
+        if (!event.ctrlKey && !event.metaKey) {
+          return;
+        }
+        event.preventDefault();
+        zoom = Math.min(2.4, Math.max(0.65, zoom + (event.deltaY < 0 ? 0.08 : -0.08)));
+        applyZoom();
+      }, { passive: false });
+
+      scroll.addEventListener('mousedown', (event) => {
+        suppressClick = false;
+        drag = {
+          x: event.clientX,
+          y: event.clientY,
+          left: scroll.scrollLeft,
+          top: scroll.scrollTop,
+          moved: false
+        };
+        scroll.classList.add('dragging');
+      });
+
+      window.addEventListener('mousemove', (event) => {
+        if (!drag) {
+          return;
+        }
+        const dx = event.clientX - drag.x;
+        const dy = event.clientY - drag.y;
+        if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+          drag.moved = true;
+          suppressClick = true;
+        }
+        scroll.scrollLeft = drag.left - dx;
+        scroll.scrollTop = drag.top - dy;
+      });
+
+      window.addEventListener('mouseup', () => {
+        scroll.classList.remove('dragging');
+        drag = null;
+      });
+
+      scroll.addEventListener('click', (event) => {
+        if (suppressClick) {
+          event.preventDefault();
+          suppressClick = false;
+          return;
+        }
+        if (svg) {
+          openMermaidInNewTab(svg.outerHTML);
+        }
+      });
+    });
+
+    (function() {
+      const toc = document.getElementById('toc');
+      const links = toc.querySelectorAll('a');
+      const sections = [];
+      links.forEach((link) => {
+        const id = link.getAttribute('href').slice(1);
+        const el = document.getElementById(id);
+        if (el) {
+          sections.push({ el, link });
+        }
+      });
+
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            links.forEach((item) => item.classList.remove('active'));
+            const target = sections.find((item) => item.el === entry.target);
+            if (target) {
+              target.link.classList.add('active');
+              if (window.innerWidth <= 1100) {
+                target.link.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+              }
+            }
+          }
+        });
+      }, { rootMargin: '-10% 0px -78% 0px' });
+
+      sections.forEach((item) => observer.observe(item.el));
+      links.forEach((link) => {
+        link.addEventListener('click', (event) => {
+          event.preventDefault();
+          const id = link.getAttribute('href').slice(1);
+          const el = document.getElementById(id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            history.replaceState(null, '', `#${id}`);
+          }
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
