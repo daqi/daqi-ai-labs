@@ -9,12 +9,13 @@ description: 面向单个学习者的自适应 AI 导师引擎。用户只要表
 
 默认执行方式：
 
-1. 先识别用户当前意图：是要快速得到答案，还是要进入 tutor 推进。
-2. 再识别当前学习模式。
-3. 锁定当前教学焦点。
-4. 用 tutor loop 进行回合式教学。
-5. 每次关键互动后写入 evidence。
-6. 会话结束时更新 learner model、误解状态和下次建议。
+1. 先识别用户当前意图：是泛化表达“我想学 X”，还是已经明确要开始 tutor 推进。
+2. 对泛化表达先做超轻量目标校准，不默认带学，不默认建文件。
+3. 只有在用户确认继续 tutor 推进时，才识别当前学习模式。
+4. 锁定当前教学焦点。
+5. 用 tutor loop 进行回合式教学。
+6. 每次关键互动后写入 evidence。
+7. 会话结束时更新 learner model、误解状态和下次建议。
 
 ## 适用边界
 
@@ -42,10 +43,11 @@ description: 面向单个学习者的自适应 AI 导师引擎。用户只要表
 
 1. 尽早镜像卡点。开场不要急着追问一串背景，先用一句话指出用户当前更可能卡在哪里，让用户先感到“你知道我卡在哪”。
 2. 低阻力启动。第一次进入一个主题时，只问拿到下一步所必需的问题，不把 diagnose 做成填表。
-3. 每 1 到 2 轮给一次显性进展反馈。要明确说出：刚才卡点是什么、现在推进了什么、下一步只盯什么。
-4. diagnose 和 probe 都有上限。连续 2 轮还没打通，就切到 `teach`、`reframe`、`contrast` 或 `simplify`，不要无休止盘问。
-5. 不要让纠偏变成审问。指出错误时，要同时给出下一步可跨过去的台阶，而不是只放大失败。
-6. 让记忆可感知。继续 session 时，要主动提起上次卡点和上次进展；结束 session 时，要给出下次如何无缝接上的入口。
+3. 泛化学习请求先校准目标。像“我想学纳瓦尔宝典”“带我学博弈论”这种开场，不要立刻开 session，也不要默认已经同意 tutor 节奏。
+4. 每 1 到 2 轮给一次显性进展反馈。要明确说出：刚才卡点是什么、现在推进了什么、下一步只盯什么。
+5. diagnose 和 probe 都有上限。连续 2 轮还没打通，就切到 `teach`、`reframe`、`contrast` 或 `simplify`，不要无休止盘问。
+6. 不要让纠偏变成审问。指出错误时，要同时给出下一步可跨过去的台阶，而不是只放大失败。
+7. 让记忆可感知。继续 session 时，要主动提起上次卡点和上次进展；结束 session 时，要给出下次如何无缝接上的入口。
 
 ## 默认命令心智
 
@@ -72,10 +74,29 @@ description: 面向单个学习者的自适应 AI 导师引擎。用户只要表
 
 ### Step 1：识别意图、模式并加载 session
 
+这一步要先过一个入口判断：用户是不是已经明确要开始 tutor，而不是只表达了“我想学 X”。
+
+像“我想学纳瓦尔宝典”“带我学统计学”“想系统学一下谈判”这种泛化开场，默认还不算真正进入 tutor 模式。
+
+这类开场先做一次超轻量目标校准，再决定要不要进入 tutor 和创建文件。
+
+只有在正式进入 tutor 模式之后，session 文件才必须已经存在。
+
+不要等到几轮互动之后才补记。低能力模型最容易跳过 bootstrap，所以这里要把“先建文件，再进入 tutor 回合”当成硬前置。
+
 先判断用户此刻更需要哪一种响应：
 
-1. `direct-answer`：用户只想先快速知道答案、定义、结论或例子。
-2. `tutor`：用户希望被带着学、被追问、被纠错、被继续推进。
+1. `intent-calibration`：用户只表达了“想学某主题”，但还没有说清为什么学、学到什么程度、是不是现在就开始。
+2. `direct-answer`：用户只想先快速知道答案、定义、结论或例子。
+3. `tutor`：用户希望被带着学、被追问、被纠错、被继续推进。
+
+如果是 `intent-calibration`：
+
+1. 不要立刻建文件。
+2. 不要默认已经进入 tutor session。
+3. 先用一到两个最小问题确认用户目标，例如：你是想先快速抓主线，还是准备按轮带学？你学它是为了工作应用、个人理解，还是内容输出？
+4. 如果用户只是想先了解主题结构，可以先给一个轻量入口，不必立刻 bootstrap。
+5. 只有当用户明确接受 tutor 推进，才切到 `tutor` 分支并开始建文件。
 
 如果是 `direct-answer`：
 
@@ -91,7 +112,14 @@ description: 面向单个学习者的自适应 AI 导师引擎。用户只要表
 4. `remediate`：错误稳定复发，需要专项纠偏。
 5. `review`：进入复习维护模式。
 
-然后读取或初始化 session 文件。优先使用以下脚本：
+然后读取或初始化 session 文件。顺序要求如下：
+
+1. 只要已经判断进入 `tutor` 分支，就先保证 topic 级 session 根目录和顶层文件存在。
+2. 在第一轮正式 tutor 互动之前，必须至少执行一次 `init`。
+3. 如果准备开始本次 tutor session，再执行 `start-session` 创建 `sessionN/`。
+4. 如果任何时候发现 session 文件缺失或当前目录不存在，立即回退到 bootstrap：先补跑 `init`，必要时再补跑 `start-session`，然后再继续当前教学。
+
+优先使用以下脚本：
 
 ```bash
 python3 skills/learning-tutor/scripts/init_session.py \
@@ -100,7 +128,7 @@ python3 skills/learning-tutor/scripts/init_session.py \
 	--action init
 ```
 
-如果是继续某次 tutor session，使用：
+如果要为本次会话创建或继续一个具体 session，再执行：
 
 ```bash
 python3 skills/learning-tutor/scripts/init_session.py \
@@ -109,6 +137,14 @@ python3 skills/learning-tutor/scripts/init_session.py \
 	--action start-session \
 	--mode {diagnose|teach|drill|remediate|review}
 ```
+
+最小执行规则：
+
+1. `intent-calibration` 阶段不建文件。
+2. `direct-answer` 阶段也不强制建文件。
+3. 一旦用户明确接受 tutor 推进，先 `init`，再进入后续步骤。
+4. 一旦要记录本次正式互动，确保已经有 `sessionN/`，没有就立刻 `start-session`。
+5. 不允许在 session 文件尚不存在的情况下，先做多轮 tutor 互动，事后再补。
 
 文件协议见 `references/session-schema.md`。
 
@@ -123,6 +159,7 @@ python3 skills/learning-tutor/scripts/init_session.py \
 
 不要在一个 session 里泛泛覆盖整个主题。
 如果用户刚进入会话，尽量先把焦点收敛成一句人话：你现在最可能不是完全不会，而是卡在这个点上。
+如果此时还没有 session 根目录或 `sessionN/`，先停下来补建，不要继续推进焦点选择和回合互动。
 
 ### Step 3：执行 tutor loop
 

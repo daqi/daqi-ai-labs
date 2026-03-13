@@ -33,6 +33,22 @@ learning/tutor-sessions/{slug}/
 
 优先使用 `skills/learning-tutor/scripts/init_session.py` 进行 session 初始化和状态读取。
 
+## Bootstrap 顺序
+
+为了避免低能力模型跳过文件创建，也避免一上来就误建文件，进入 tutor 模式时按下面顺序执行：
+
+1. 先判断用户是否还停留在泛化入口，例如“我想学 X”。
+2. 如果还在泛化入口，先做轻量目标校准，不建文件。
+3. 只有当用户明确进入 tutor，而不是 `intent-calibration` 或 `direct-answer` 时，才执行 `init`，保证 topic 级目录和顶层文件存在。
+4. 在第一轮正式 tutor 互动之前，如果需要记录本次会话，再执行 `start-session` 创建 `sessionN/`。
+5. 如果中途发现目录或文件缺失，立即补跑 `init`，必要时再补跑 `start-session`，不要等到会话结束后再补记。
+
+简单说：
+
+1. `intent-calibration` 不建文件。
+2. `direct-answer` 也可以不建文件。
+3. `tutor` 模式才先建文件，再进入标准回合。
+
 ### 初始化 topic session
 
 ```bash
